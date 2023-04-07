@@ -40,52 +40,44 @@ def plot_top_words(model, feature_names, n_top_words, topic_labels=None):
     plt.savefig(f"./results/figures/LDA_clusters_words_{len(model.components_)}_topics_repnum.eps", format="eps")
     plt.show()
 
-n_features = 1000
-n_components = 5
-n_top_words = 20
 
-print("Loading dataset...")
-t0 = time()
+def display(n_features: int = 1000, n_components: int = 5, n_top_words: int = 20, topic_names=None):
+    if topic_names is None:
+        topic_names = ["Legal vocabulary", "Technical specification", "Internet access", "Data protection",
+                       "Open science"]
+    print("Loading dataset...")
 
-consultation = pd.read_csv("./consultation_data/projet-de-loi-numerique-consultation-anonyme.csv",
-                           parse_dates=["Création", "Modification"], index_col=0,
-                           dtype={"Identifiant": str, "Titre": str, "Lié.à..": str, "Contenu": str, "Lien": str})
-consultation["Lié.à.."] = consultation["Lié.à.."].fillna("Unknown")
-consultation["Type.de.profil"] = consultation["Type.de.profil"].fillna("Unknown")
-proposals = consultation.loc[consultation["Type.de.contenu"] == "Proposition"]
-proposals["Contenu"] = proposals["Contenu"].apply(lambda proposal: re.sub(
-        "Éléments de contexte\r?\nExplication de l'article :\r?\n", "", re.sub("(\r?\n)+", "\n", proposal)))
-proposals["full_contribution"] = proposals[["Titre", "Contenu"]].agg(". \n\n".join, axis=1)
+    consultation = pd.read_csv("./consultation_data/projet-de-loi-numerique-consultation-anonyme.csv",
+                               parse_dates=["Création", "Modification"], index_col=0,
+                               dtype={"Identifiant": str, "Titre": str, "Lié.à..": str, "Contenu": str, "Lien": str})
+    consultation["Lié.à.."] = consultation["Lié.à.."].fillna("Unknown")
+    consultation["Type.de.profil"] = consultation["Type.de.profil"].fillna("Unknown")
+    proposals = consultation.loc[consultation["Type.de.contenu"] == "Proposition"]
+    proposals["Contenu"] = proposals["Contenu"].apply(lambda proposal: re.sub(
+            "Éléments de contexte\r?\nExplication de l'article :\r?\n", "", re.sub("(\r?\n)+", "\n", proposal)))
+    proposals["full_contribution"] = proposals[["Titre", "Contenu"]].agg(". \n\n".join, axis=1)
 
-n_samples = len(proposals.index)
+    n_samples = len(proposals.index)
 
-french_stopwords = urllib.request.urlopen("https://raw.githubusercontent.com/stopwords-iso/stopwords-fr/master/stopwords-fr.txt").read().decode('utf-8').splitlines()
+    french_stopwords = urllib.request.urlopen("https://raw.githubusercontent.com/stopwords-iso/stopwords-fr/master/stopwords-fr.txt").read().decode('utf-8').splitlines()
 
-print("done in %0.3fs." % (time() - t0))
+    # Use tf (raw term count) features for LDA.
+    print("Extracting tf features for LDA...")
+    tf_vectorizer = CountVectorizer(min_df=2, max_features=n_features, stop_words=french_stopwords)
+    tf = tf_vectorizer.fit_transform(proposals["full_contribution"])
 
-# Use tf (raw term count) features for LDA.
-print("Extracting tf features for LDA...")
-t0 = time()
-tf_vectorizer = CountVectorizer(min_df=2, max_features=n_features, stop_words=french_stopwords)
-tf = tf_vectorizer.fit_transform(proposals["full_contribution"])
-print("done in %0.3fs." % (time() - t0))
-print()
+    print(
+        "Fitting LDA models with tf features, n_samples=%d and n_features=%d..."
+        % (n_samples, n_features)
+    )
+    lda = LatentDirichletAllocation(
+        n_components=n_components,
+        max_iter=5,
+        learning_method="online",
+        learning_offset=50.0,
+        random_state=0,
+    )
+    lda.fit(tf)
+    tf_feature_names = tf_vectorizer.get_feature_names_out()
 
-print(
-    "\n" * 2,
-    "Fitting LDA models with tf features, n_samples=%d and n_features=%d..."
-    % (n_samples, n_features),
-)
-lda = LatentDirichletAllocation(
-    n_components=n_components,
-    max_iter=5,
-    learning_method="online",
-    learning_offset=50.0,
-    random_state=0,
-)
-t0 = time()
-lda.fit(tf)
-print("done in %0.3fs." % (time() - t0))
-tf_feature_names = tf_vectorizer.get_feature_names_out()
-
-plot_top_words(lda, tf_feature_names, n_top_words, ["Legal vocabulary", "Technical specification", "Internet access", "Data protection", "Open science"])
+    plot_top_words(lda, tf_feature_names, n_top_words, topic_labels=topic_names)

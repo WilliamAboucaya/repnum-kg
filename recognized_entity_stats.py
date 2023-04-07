@@ -1,5 +1,4 @@
 import re
-import sys
 from pprint import pprint
 
 import pandas as pd
@@ -8,9 +7,8 @@ from tqdm import tqdm
 
 from utils import detect_entities, disambiguate_acronym
 
-if __name__ == "__main__":
-    corrected = "--corrected" in sys.argv
 
+def build_stats(corrected: bool = True) -> pd.DataFrame:
     consultation = pd.read_csv("./consultation_data/projet-de-loi-numerique-consultation-anonyme.csv",
                                parse_dates=["Création", "Modification"], index_col=0,
                                dtype={"Identifiant": str, "Titre": str, "Lié.à..": str, "Contenu": str, "Lien": str})
@@ -21,7 +19,8 @@ if __name__ == "__main__":
         "Éléments de contexte\nExplication de l'article :\n", "", re.sub("\n+", "\n", proposal)))
     proposals["full_contribution"] = proposals[["Titre", "Contenu"]].agg(". \n\n".join, axis=1)
 
-    stats = {}
+    stats_raw = {}
+    stats_unique = {}
 
     re_acronym = re.compile(r"^([A-Z]\.?)+$")
 
@@ -33,9 +32,10 @@ if __name__ == "__main__":
         if "Resources" not in response_json:
             continue
 
+        resources = response_json["Resources"]
         unique_resources = []
 
-        for resource in response_json["Resources"]:
+        for resource in resources:
             if all(map(lambda x: resource["@URI"] != x["@URI"], unique_resources)):
                 unique_resources.append(resource)
 
@@ -45,12 +45,21 @@ if __name__ == "__main__":
             else:
                 entity = resource["@URI"]
 
-            if entity in stats.keys():
-                stats[entity] += 1
+            if entity in stats_unique.keys():
+                stats_unique[entity] += 1
+                stats_raw[entity] += sum(map(lambda x: x["@URI"] == entity, resources))
             else:
-                stats[entity] = 1
+                stats_unique[entity] = 1
+                stats_raw[entity] = sum(map(lambda x: x["@URI"] == entity, resources))
 
-    pprint(stats)
+    stats = pd.DataFrame(data={
+        "resource": list(stats_unique.keys()),
+        "unique_count": list(stats_unique.values()),
+        "raw_count": list(stats_raw.values())
+    })
 
-    top_stats = list(sorted(stats.items(), key=lambda x: x[1], reverse=True)[:20])
-    pprint(top_stats)
+    return stats
+    # pprint(stats)
+    #
+    # top_stats = list(sorted(stats.items(), key=lambda x: x[1], reverse=True)[:20])
+    # pprint(top_stats)

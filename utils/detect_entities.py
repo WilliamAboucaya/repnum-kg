@@ -23,6 +23,7 @@ def detect_entities(text: str, confidence: float = 0.5, support: float = 0, form
         "confidence": confidence,
         "support": support,
         "sparql": filter_q,
+        "types": "DBpedia:Film",
         "policy": "blacklist"
     }
 

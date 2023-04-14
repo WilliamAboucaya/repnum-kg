@@ -16,7 +16,7 @@ def build_stats(corrected: bool = True) -> pd.DataFrame:
     consultation["Type.de.profil"] = consultation["Type.de.profil"].fillna("Unknown")
     proposals = consultation.loc[consultation["Type.de.contenu"] == "Proposition"]
     proposals["Contenu"] = proposals["Contenu"].apply(lambda proposal: re.sub(
-        "Éléments de contexte\nExplication de l'article :\n", "", re.sub("\n+", "\n", proposal)))
+        "Éléments de contexte\r?\nExplication de l'article :\r?\n", "", re.sub("(\r?\n)+", "\n", proposal)))
     proposals["full_contribution"] = proposals[["Titre", "Contenu"]].agg(". \n\n".join, axis=1)
 
     stats_raw = {}

@@ -4,6 +4,8 @@ We provide the code used to produce the analyses and figures of our article: *Bu
 
 ## Installing the dependencies
 
+⚠️ The project has been created using Python 3.9 and also works with Python 3.11. We therefore recommend that you use one of these Python versions.
+
 ```shell
 pip install -r requirements.txt
 ```

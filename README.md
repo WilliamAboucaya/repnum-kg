@@ -1,10 +1,10 @@
+[![python](https://img.shields.io/badge/python-3.9%20|%203.10%20|%203.11-blue.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+
 # Online citizen consultation knowledge graph generator.
 
 We provide the code used to produce the analyses and figures of our article: *Building Online Public Consultation Knowledge Graphs*. The code is available by as separate Python files and using a Jupyter Notebook:
 
 ## Installing the dependencies
-
-⚠️ The project has been created using Python 3.9 and also works with Python 3.11. We therefore recommend that you use one of these Python versions.
 
 ```shell
 pip install -r requirements.txt

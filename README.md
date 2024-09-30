@@ -16,7 +16,7 @@ pip install -r requirements.txt
 jupyter notebook public_consultation_kg.ipynb
 ```
 
-## Cite this paper
+## Citation
 
 ```bibtex
 @inproceedings{aboucaya:hal-04076743,

@@ -15,3 +15,20 @@ pip install -r requirements.txt
 ```shell
 jupyter notebook public_consultation_kg.ipynb
 ```
+
+## Cite this paper
+
+```bibtex
+@inproceedings{aboucaya:hal-04076743,
+  TITLE = {{Building Online Public Consultation Knowledge Graphs}},
+  AUTHOR = {Aboucaya, William and Guehis, Sonia and Angarita, Rafael},
+  URL = {https://inria.hal.science/hal-04076743},
+  BOOKTITLE = {{Text2KG 2023: International Workshop on Knowledge Graph Generation from Text, Co-located with the ESWC 2023}},
+  ADDRESS = {Hersonissos (Crete), Greece},
+  EDITOR = {CEUR-WS},
+  PAGES = {12},
+  YEAR = {2023},
+  MONTH = May,
+  HAL_ID = {hal-04076743},
+}
+```
